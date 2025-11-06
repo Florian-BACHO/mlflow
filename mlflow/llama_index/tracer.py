@@ -449,12 +449,18 @@ class MlflowEventHandler(BaseEventHandler, extra="allow"):
     def _parse_usage(self, span: LiveSpan):
         try:
             usage = span.get_attribute("usage")
+
+            prompt_tokens = usage.get("prompt_tokens")
+            completion_tokens = usage.get("completion_tokens")
+            total_tokens = usage.get("total_tokens")
+
+            if total_tokens is None and prompt_tokens is not None and completion_tokens is not None:
+                total_tokens = prompt_tokens + total_tokens
+
             return {
-                TokenUsageKey.INPUT_TOKENS: usage["prompt_tokens"],
-                TokenUsageKey.OUTPUT_TOKENS: usage["completion_tokens"],
-                TokenUsageKey.TOTAL_TOKENS: usage.get(
-                    "total_tokens", usage["prompt_tokens"] + usage["completion_tokens"]
-                ),
+                TokenUsageKey.INPUT_TOKENS: prompt_tokens,
+                TokenUsageKey.OUTPUT_TOKENS: completion_tokens,
+                TokenUsageKey.TOTAL_TOKENS: total_tokens,
             }
         except Exception as e:
             _logger.debug(f"Failed to set TokenUsage to the span: {e}", exc_info=True)
