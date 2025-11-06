@@ -457,11 +457,13 @@ class MlflowEventHandler(BaseEventHandler, extra="allow"):
             if total_tokens is None and prompt_tokens is not None and completion_tokens is not None:
                 total_tokens = prompt_tokens + total_tokens
 
-            return {
+            usage = {
                 TokenUsageKey.INPUT_TOKENS: prompt_tokens,
                 TokenUsageKey.OUTPUT_TOKENS: completion_tokens,
                 TokenUsageKey.TOTAL_TOKENS: total_tokens,
             }
+
+            return {usage_key: tokens for usage_key, tokens in usage.items() if tokens is not None}
         except Exception as e:
             _logger.debug(f"Failed to set TokenUsage to the span: {e}", exc_info=True)
 
